@@ -1,8 +1,5 @@
 <?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
-require 'vendor/autoload.php';
-require_once PATH_THIRD .'pintuapi/libraries/pintuapi_rest.php';
-
 class Pintuapi_ext
 {
 
@@ -54,6 +51,8 @@ class Pintuapi_ext
             {
                 //set agent if missing
                 $_SERVER['HTTP_USER_AGENT'] = ee()->input->user_agent() == false ? '0' : ee()->input->user_agent();
+                include_once __DIR__ . '/vendor/autoload.php';
+                include_once PATH_THIRD .'pintuapi/libraries/pintuapi_rest.php';
                 //load the route class
                 include_once PATH_THIRD .'pintuapi/libraries/pintuapi_route.php';
                 //call the class 默认使用rest风格
