@@ -40,21 +40,21 @@ class Pintuapi_ext
                 $r   = new pintuapi_rest();
                 $r->Pterror($msg, 406);
             });
-            //load the lib
-            ee()->load->library('pintuapi_lib');
-            ee()->load->helper('pintuapi');
             //is the first segment 'webservice'
             $is_ptapi = ee()->uri->segment(1) == 'api' ? true : false;
             //is the request a page and is the first segment webservice?
             //than we need to trigger te services
             if($is_ptapi)
-            {
+            {   
                 //set agent if missing
                 $_SERVER['HTTP_USER_AGENT'] = ee()->input->user_agent() == false ? '0' : ee()->input->user_agent();
                 include_once __DIR__ . '/vendor/autoload.php';
                 include_once PATH_THIRD .'pintuapi/libraries/pintuapi_rest.php';
                 //load the route class
                 include_once PATH_THIRD .'pintuapi/libraries/pintuapi_route.php';
+                //load the lib
+                ee()->load->library('pintuapi_lib');
+                ee()->load->helper('pintuapi');
                 //call the class 默认使用rest风格
                 $this->ptapi = new Pintuapi_route();
                 //stop the whole process because we will not show futher more 
