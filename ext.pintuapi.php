@@ -32,20 +32,21 @@ class Pintuapi_ext
         //just an page request?
         if (REQ == 'PAGE' && !empty($session))
         {
-            error_reporting(-1);
-            ini_set('display_errors', 1);
-            //全局捕捉异常
-            set_exception_handler(function($e){
-                $msg = $e->getMessage();
-                $r   = new pintuapi_rest();
-                $r->Pterror($msg, 406);
-            });
             //is the first segment 'webservice'
             $is_ptapi = ee()->uri->segment(1) == 'api' ? true : false;
             //is the request a page and is the first segment webservice?
             //than we need to trigger te services
             if($is_ptapi)
             {   
+                //show all error report E_ALL
+                error_reporting(-1);
+                ini_set('display_errors', 1);
+                //全局捕捉异常
+                set_exception_handler(function($e){
+                    $msg = $e->getMessage();
+                    $r   = new pintuapi_rest();
+                    $r->Pterror($msg, 406);
+                });
                 //set agent if missing
                 $_SERVER['HTTP_USER_AGENT'] = ee()->input->user_agent() == false ? '0' : ee()->input->user_agent();
                 include_once __DIR__ . '/vendor/autoload.php';
