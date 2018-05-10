@@ -11,10 +11,6 @@
  * @copyright 	Copyright (c) 2014 Reinos.nl Internet Media
  */
 
-/**
- * Include the config file
- */
-require_once PATH_THIRD.'webservice/config.php';
 
 class Webservice_ce_element
 {

@@ -28,11 +28,6 @@ http://devot-ee.com/add-ons/support/zoo-visitor/viewthread/8860
 http://devot-ee.com/add-ons/support/zoo-visitor/viewthread/10875#37640
  */
 
-/**
- * Include the config file
- */
-require_once PATH_THIRD.'webservice/config.php';
-
 class Webservice_zoo_visitor_ft
 {
 	public $name = 'zoo_visitor';

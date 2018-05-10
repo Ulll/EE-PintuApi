@@ -29,9 +29,10 @@ class Pintuapi_ext
      */
     function sessions_start($session)
     {
+        ee()->session = $session;
         //just an page request?
         if (REQ == 'PAGE' && !empty($session))
-        {
+        {   
             //is the first segment 'webservice'
             $is_ptapi = ee()->uri->segment(1) == 'api' ? true : false;
             //is the request a page and is the first segment webservice?

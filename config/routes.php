@@ -13,6 +13,9 @@ $route['auth/token'] = array(
     // 'get' => "uauth/token",
 );
 
+//tool
+$route['tool/servertime'] = 'tool/servertime';
+
 //entities
 $route['entry/([0-9]+)/update'] = array(
     'post' => "entry/update_entry/$1",

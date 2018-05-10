@@ -11,14 +11,10 @@
  * @copyright 	Copyright (c) 2014 Reinos.nl Internet Media
  */
 
-/**
- * Include the config file
- */
-require_once PATH_THIRD.'webservice/config.php';
 
-class Webservice_simple_s3_uploader_ft
+class Webservice_rte_ft
 {
-	public $name = 'simple_s3_uploader';
+	public $name = 'rte';
 
 	// ----------------------------------------------------------------------
 
@@ -32,13 +28,13 @@ class Webservice_simple_s3_uploader_ft
 	 */
 	public function webservice_pre_process($data = null, $free_access = false, $entry_id = 0)
 	{
-		return $this->_parse_data($data, $free_access, $entry_id);
+		return $this->parse_data($data, $this->field_data);
 	}
 
 	// ----------------------------------------------------------------------
 
 	/**
-	 * Preprocess the data to be returned
+	 * Preprocess the data to be returned for matrix
 	 *
 	 * @param  mixed $data
 	 * @param bool|string $free_access
@@ -47,13 +43,13 @@ class Webservice_simple_s3_uploader_ft
 	 */
 	public function webservice_pre_process_matrix($data = null, $free_access = false, $entry_id = 0)
 	{
-		return $this->_parse_data($data, $free_access, $entry_id);
+		return $this->parse_data($data, $this->col_data);
 	}
 
 	// ----------------------------------------------------------------------
 
 	/**
-	 * Preprocess the data to be returned
+	 * Preprocess the data to be returned for matrix
 	 *
 	 * @param  mixed $data
 	 * @param bool|string $free_access
@@ -62,26 +58,27 @@ class Webservice_simple_s3_uploader_ft
 	 */
 	public function webservice_pre_process_grid($data = null, $free_access = false, $entry_id = 0)
 	{
-		return $this->_parse_data($data, $free_access, $entry_id);
+		return $this->parse_data($data, $this->col_data);
 	}
 
 	// ----------------------------------------------------------------------
 
 	/**
-	 * Preprocess the data to be returned
-	 *
-	 * @param  mixed $data
-	 * @param bool|string $free_access
-	 * @param  int $entry_id
-	 * @return mixed string
+	 * parse the data
 	 */
-	private function _parse_data($data = null, $free_access = false, $entry_id = 0)
+	private function parse_data($data = null, $field_data)
 	{
-		if(!is_array($data)) {
-			$data = unserialize(base64_decode($data));
-		}
-
+		$data = ee()->typography->parse_type(
+			ee()->functions->encode_ee_tags(
+				ee()->typography->parse_file_paths($data)
+			),
+			array(
+				'text_format'	=> 'xhtml',
+				'html_format'	=> $field_data['channel_settings']['channel_html_formatting'],
+				'auto_links'	=> $field_data['channel_settings']['channel_auto_link_urls'],
+				'allow_img_url' => $field_data['channel_settings']['channel_allow_img_urls']
+			)
+		);
 		return $data;
 	}
-
 }
