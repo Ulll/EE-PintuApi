@@ -8,7 +8,9 @@ class Entry_model
         //load other models
         ee()->load->model('category_model');
     }
-} // END CLASS
+} 
+
+// END CLASS
 
 /* End of file default_model.php  */
 /* Location: ./system/expressionengine/third_party/default/models/default_model.php */

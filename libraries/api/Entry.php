@@ -240,7 +240,8 @@ class Entry
 
             //generate error
             return array(
-                'message' => $errors
+                'message' => $errors,
+                'httpcode' => 400,
             );
         }
 
