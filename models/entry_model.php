@@ -8,6 +8,13 @@ class Entry_model
         //load other models
         ee()->load->model('category_model');
     }
+
+    public function get_edit_date($entry_id)
+    {
+        ee()->db->select('edit_date');
+        ee()->db->where('entry_id', $entry_id);
+        return ee()->db->get('channel_titles')->row();
+    }
 } 
 
 // END CLASS

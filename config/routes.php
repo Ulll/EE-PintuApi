@@ -21,6 +21,10 @@ $route['entry/([0-9]+)/update'] = array(
     'post' => "entry/update_entry/$1",
 );
 
+$route['entry/([0-9]+)/detail'] = array(
+    'get' => "entry/read_entry/$1",
+);
+
 $route['entry/([0-9]+)/share']  = array(
     'get' => "entry/share/$1",
 );

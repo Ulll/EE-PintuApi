@@ -81,6 +81,138 @@ class Entry_lib
         return $entry;
     }
 
+
+    public function get_edit_date($entry_id)
+    {
+        return ee()->entry_model->get_edit_date($entry_id);
+    }
+
+
+    /**
+     * Parses out received channel parameters
+     *
+     * @access  public
+     * @param   int
+     * @return  void
+     */
+    public function parse_channel($entry_channel_id = '', $entry_based = true, $method = '')
+    {
+        //get the channel data
+        ee()->db->select('*')->from('channels');
+        //select based on entry_id
+        if($entry_based)
+        {
+            ee()->db->where('channel_titles.entry_id', $entry_channel_id);
+            ee()->db->join('channel_titles', 'channels.channel_id = channel_titles.channel_id', 'left');
+        }
+        //based on channelname
+        else
+        {
+            if(is_numeric($entry_channel_id))
+            {
+                ee()->db->where('channel_id', $entry_channel_id);
+            }
+            else
+            {
+                ee()->db->where('channel_name', $entry_channel_id);
+            }
+        }
+        
+        $query = ee()->db->get();
+
+        //no result?
+        if ($query->num_rows() == 0)
+        {   
+            return array(
+                'success' => false,
+                'message' => 'Given channel does not exist'
+            );
+        }
+        $this->channel = $query->result_array()[0];
+
+        if(!$this->channel)
+        {
+            //no rights to the channel
+            return array(
+                'success' => false,
+                'message' => 'You are not authorized to use this channel'
+            );
+        }
+
+        $this->fields = $this->_get_fieldtypes();
+        
+        //everything is ok
+        return array('success'=>true);
+    }
+
+
+    //validate dates
+    public function validate_dates($dates = array('entry_date', 'edit_date', 'expiration_date', 'comment_expiration_date'), &$post_data = array())
+    {
+        //validate the date if needed
+        $validate_dates = array();
+
+        //loop over the default dates
+        foreach($dates as $date)
+        {
+            //no date set?
+            if ( ! isset($post_data[$date]) OR ! $post_data[$date])
+            {
+                $post_data[$date] = 0;
+            }
+
+            //otherwise save it, and validate it later
+            else
+            {
+                $validate_dates[] = $date;
+            }
+        }
+
+        //validate the dates
+        foreach($validate_dates as $date)
+        {
+            if ( ! is_numeric($post_data[$date]) && trim($post_data[$date]))
+            {
+                $post_data[$date] = ee()->localize->string_to_timestamp($post_data[$date]);
+            }
+
+            if ($post_data[$date] === FALSE)
+            {
+                //generate error
+                return array(
+                    'message' => 'the field '.$date.' is an invalid date.'
+                );
+            }
+
+            if (isset($post_data['revision_post'][$date]))
+            {
+                $post_data['revision_post'][$date] = $post_data[$date];
+            }
+        }
+
+        return true;
+    }
+    
+
+    // ----------------------------------------------------------------
+
+    /**
+     * Search an entry based on the given values
+     *
+     * @access  public
+     * @param   parameter list
+     * @return  void
+     */
+    private function _get_fieldtypes()
+    {
+        $channel_id = isset($this->channel['channel_id']) ? $this->channel['channel_id'] : null ;
+        $channel_fields = ee()->channel_data->get_channel_fields($channel_id)->result_array();
+        $fields = ee()->channel_data->utility->reindex($channel_fields, 'field_name');
+        return $fields;
+    }
+
+
+
     /**
      * Get the channel data
      *

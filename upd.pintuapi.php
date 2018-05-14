@@ -25,6 +25,10 @@ class Pintuapi_upd
         ));
         //install the extension
         $this->_register_hook('sessions_start', 'sessions_start');
+
+        //install the extension
+        $this->_register_hook('after_channel_entry_save', 'after_channel_entry_save');
+        
         return TRUE;
     }
 

@@ -3,10 +3,12 @@
 
 class Entry
 {
-    public $limit;
-    public $offset;
-    public $total_results;
-    public $absolute_results;
+    public $limit = 10;
+    public $offset = 0;
+    public $total_results = 0;
+    public $cache_time = 600;//10 minute
+
+
 
     //-------------------------------------------------------------------------
 
@@ -17,7 +19,7 @@ class Entry
     {
         // load the stats class because this is not loaded because of the use of the extension
         ee()->load->library('stats'); 
-                
+
         /** ---------------------------------------
         /** load the api`s
         /** ---------------------------------------*/
@@ -29,18 +31,54 @@ class Entry
 
 
     /**
-     * build a entry data array for a new entry
-     *
-     * @return  void
+     * Read a entry
+     * @param  string $auth 
+     * @param  array  $post_data 
+     * @return array            
      */
-    public function update_entry_bak($entry_id, $post_data = array())
+    public function read_entry($entry_id)
     {
-        ee()->pintuapi_lib->check_jwt_access();
+        $outputFields = array(
+            'entry_id',
+            'author',
+            'title',
+            'url_title',
+            'entry_date',
+            'edit_date',
+            'categories',
+        );
+
+        // $edit_date = ee()->entry_lib->get_edit_date($entry_id);
+        // if (empty($edit_date)) {
+        //     return [
+        //         'message' => 'entry no found',
+        //         'httpcode' => 403
+        //     ];
+        // }
+        // $edit_date = $edit_date->edit_date;
+        // $cache_key = __METHOD__.":".$entry_id;
+        // $cache_data    = ee()->cache->get($cache_key);
+
+        // if ($cache_data == false || $cache_data['edit_date'] != $edit_date) {
+        //     $entry_data = ee()->entry_lib->get_entry($entry_id, array('*'), true);
+        //     // Cache version information for a while
+        //     ee()->cache->save(
+        //         $cache_key,
+        //         $entry_data,
+        //         $this->cache_time
+        //     );
+        // }else {
+        //     $entry_data = $cache_data;
+        // }
+        
+        $entry_data = ee()->entry_lib->get_entry($entry_id, array('*'), true);
 
         return [
-            'message' => 'update success'
+            'data' => $entry_data
         ];
     }
+
+
 
     /**
      * build a entry data array for a new entry
@@ -100,7 +138,7 @@ class Entry
         /** ---------------------------------------
         /**  Parse Out Channel Information and check if the use is auth for the channel
         /** ---------------------------------------*/
-        $channel_check = $this->_parse_channel($entry_id);
+        $channel_check = $this->entry_lib->parse_channel($entry_id);
 
         if( ! $channel_check['success'])
         {
@@ -193,7 +231,7 @@ class Entry
         /** ---------------------------------------
         /**  validate dates
         /** ---------------------------------------*/
-        $date_error = $this->validate_dates(array('entry_date', 'edit_date', 'expiration_date', 'comment_expiration_date'), $entry_data);
+        $date_error = $this->entry_lib->validate_dates(array('entry_date', 'edit_date', 'expiration_date', 'comment_expiration_date'), $entry_data);
         if($date_error !== true)
         {
             return $date_error;
@@ -277,127 +315,5 @@ class Entry
             'message' => 'update success'
         ];
     }
-
-    /**
-     * Parses out received channel parameters
-     *
-     * @access  public
-     * @param   int
-     * @return  void
-     */
-    private function _parse_channel($entry_channel_id = '', $entry_based = true, $method = '')
-    {
-        //get the channel data
-        ee()->db->select('*')->from('channels');
-        //select based on entry_id
-        if($entry_based)
-        {
-            ee()->db->where('channel_titles.entry_id', $entry_channel_id);
-            ee()->db->join('channel_titles', 'channels.channel_id = channel_titles.channel_id', 'left');
-        }
-        //based on channelname
-        else
-        {
-            if(is_numeric($entry_channel_id))
-            {
-                ee()->db->where('channel_id', $entry_channel_id);
-            }
-            else
-            {
-                ee()->db->where('channel_name', $entry_channel_id);
-            }
-        }
-        
-        $query = ee()->db->get();
-
-        //no result?
-        if ($query->num_rows() == 0)
-        {   
-            return array(
-                'success' => false,
-                'message' => 'Given channel does not exist'
-            );
-        }
-        $this->channel = $query->result_array()[0];
-
-        if(!$this->channel)
-        {
-            //no rights to the channel
-            return array(
-                'success' => false,
-                'message' => 'You are not authorized to use this channel'
-            );
-        }
-
-        $this->fields = $this->_get_fieldtypes();
-        
-        //everything is ok
-        return array('success'=>true);
-    }
-
-    // ----------------------------------------------------------------
-
-    /**
-     * Search an entry based on the given values
-     *
-     * @access  public
-     * @param   parameter list
-     * @return  void
-     */
-    private function _get_fieldtypes()
-    {
-        $channel_id = isset($this->channel['channel_id']) ? $this->channel['channel_id'] : null ;
-        $channel_fields = ee()->channel_data->get_channel_fields($channel_id)->result_array();
-        $fields = ee()->channel_data->utility->reindex($channel_fields, 'field_name');
-        return $fields;
-    }
-
-    //validate dates
-    public function validate_dates($dates = array('entry_date', 'edit_date', 'expiration_date', 'comment_expiration_date'), &$post_data = array())
-    {
-        //validate the date if needed
-        $validate_dates = array();
-
-        //loop over the default dates
-        foreach($dates as $date)
-        {
-            //no date set?
-            if ( ! isset($post_data[$date]) OR ! $post_data[$date])
-            {
-                $post_data[$date] = 0;
-            }
-
-            //otherwise save it, and validate it later
-            else
-            {
-                $validate_dates[] = $date;
-            }
-        }
-
-        //validate the dates
-        foreach($validate_dates as $date)
-        {
-            if ( ! is_numeric($post_data[$date]) && trim($post_data[$date]))
-            {
-                $post_data[$date] = ee()->localize->string_to_timestamp($post_data[$date]);
-            }
-
-            if ($post_data[$date] === FALSE)
-            {
-                //generate error
-                return array(
-                    'message' => 'the field '.$date.' is an invalid date.'
-                );
-            }
-
-            if (isset($post_data['revision_post'][$date]))
-            {
-                $post_data['revision_post'][$date] = $post_data[$date];
-            }
-        }
-
-        return true;
-    }
-
 }
 

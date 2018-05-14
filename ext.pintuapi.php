@@ -66,4 +66,13 @@ class Pintuapi_ext
             
         }
     }
+
+    /**
+     * 更新所有缓存
+     * @return 
+     */
+    function entry_submission_end($entry, $values)
+    {
+        //清除该文章对应的缓存数据
+    }
 }
